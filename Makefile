@@ -22,7 +22,7 @@ BINARY := $(BUILDDIR)/$(PRODUCT)
 CXX := icpc
 CXXFLAGS_DEBUG := -g
 CXXFLAGS_OPT := -O3 -fast -fno-alias
-CXXFLAGS_OPENMP := -openmp
+CXXFLAGS_OPENMP := -qopenmp
 
 # pgi flags:
 #CXX := pgCC
@@ -39,7 +39,8 @@ CXXFLAGS := $(CXXFLAGS_OPT)
 # add mpi to compile (comment out for serial build)
 # the following assumes the existence of an mpi compiler
 # wrapper called mpicxx
-CXX := mpicxx
+#CXX := mpicxx
+CXX := mpiicpc
 CXXFLAGS += -DUSE_MPI
 
 # add openmp flags (comment out for serial build)
