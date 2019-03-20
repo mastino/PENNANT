@@ -39,8 +39,7 @@ CXXFLAGS := $(CXXFLAGS_OPT)
 # add mpi to compile (comment out for serial build)
 # the following assumes the existence of an mpi compiler
 # wrapper called mpicxx
-#CXX := mpicxx
-CXX := mpiicpc
+CXX := mpicxx
 CXXFLAGS += -DUSE_MPI
 
 # add openmp flags (comment out for serial build)
