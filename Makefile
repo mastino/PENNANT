@@ -10,19 +10,25 @@ DEPS := $(SRCS:$(SRCDIR)/%.cc=$(BUILDDIR)/%.d)
 
 BINARY := $(BUILDDIR)/$(PRODUCT)
 
+USE_GCC := 1
+USE_ICC := 1
+USE_MPI := 1
+
 # begin compiler-dependent flags
 #
 # gcc flags:
-#CXX := g++
-#CXXFLAGS_DEBUG := -g
-#CXXFLAGS_OPT := -O3
-#CXXFLAGS_OPENMP := -fopenmp
-
+ifdef USE_GCC
+CXX := g++
+CXXFLAGS_DEBUG := -g
+CXXFLAGS_OPT := -O3 -g
+CXXFLAGS_OPENMP := -fopenmp
+else ifdef USE_ICC
 # intel flags:
 CXX := icpc
 CXXFLAGS_DEBUG := -g
-CXXFLAGS_OPT := -O3 -fast -fno-alias
+CXXFLAGS_OPT := -O3 -g -fast -fno-alias
 CXXFLAGS_OPENMP := -qopenmp
+endif
 
 # pgi flags:
 #CXX := pgCC
@@ -39,8 +45,10 @@ CXXFLAGS := $(CXXFLAGS_OPT)
 # add mpi to compile (comment out for serial build)
 # the following assumes the existence of an mpi compiler
 # wrapper called mpicxx
+ifdef USE_MPI
 CXX := mpicxx
 CXXFLAGS += -DUSE_MPI
+endif
 
 # add openmp flags (comment out for serial build)
 CXXFLAGS += $(CXXFLAGS_OPENMP)
