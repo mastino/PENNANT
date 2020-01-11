@@ -30,6 +30,13 @@
 #include "QCS.hh"
 #include "HydroBC.hh"
 
+
+#ifdef USE_CALI
+#include <caliper/cali.h>
+#endif
+
+
+
 using namespace std;
 
 
@@ -170,6 +177,10 @@ void Hydro::initRadialVel(
 void Hydro::doCycle(
             const double dt) {
 
+#ifdef USE_CALI
+CALI_CXX_MARK_FUNCTION;
+#endif
+
     const int numpch = mesh->numpch;
     const int numsch = mesh->numsch;
     double2* px = mesh->px;
@@ -194,7 +205,10 @@ void Hydro::doCycle(
     double* zdl = mesh->zdl;
 
     // Begin hydro cycle
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel
+    {
+    CALI_MARK_BEGIN("HydroLoop1");
+    #pragma omp for schedule(static)
     for (int pch = 0; pch < numpch; ++pch) {
         int pfirst = mesh->pchpfirst[pch];
         int plast = mesh->pchplast[pch];
@@ -207,8 +221,13 @@ void Hydro::doCycle(
         // 1. advance mesh to center of time step
         advPosHalf(px0, pu0, dt, pxp, pfirst, plast);
     } // for pch
+    CALI_MARK_END("HydroLoop1");
+    }
 
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel
+    {
+    CALI_MARK_BEGIN("HydroLoop2");
+    #pragma omp for schedule(static)
     for (int sch = 0; sch < numsch; ++sch) {
         int sfirst = mesh->schsfirst[sch];
         int slast = mesh->schslast[sch];
@@ -241,13 +260,18 @@ void Hydro::doCycle(
         qcs->calcForce(sfq, sfirst, slast);
         sumCrnrForce(sfp, sfq, sft, cftot, sfirst, slast);
     }  // for sch
+    CALI_MARK_END("HydroLoop2");
+    }
     mesh->checkBadSides();
 
     // sum corner masses, forces to points
     mesh->sumToPoints(cmaswt, pmaswt);
     mesh->sumToPoints(cftot, pf);
 
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel
+    {
+    CALI_MARK_BEGIN("HydroLoop3");
+    #pragma omp for schedule(static)
     for (int pch = 0; pch < numpch; ++pch) {
         int pfirst = mesh->pchpfirst[pch];
         int plast = mesh->pchplast[pch];
@@ -266,10 +290,15 @@ void Hydro::doCycle(
         // 6. advance mesh to end of time step
         advPosFull(px0, pu0, pap, dt, px, pu, pfirst, plast);
     }  // for pch
+    CALI_MARK_END("HydroLoop3");
+    }
 
     resetDtHydro();
 
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel
+    {
+    CALI_MARK_BEGIN("HydroLoop4");
+    #pragma omp for schedule(static)
     for (int sch = 0; sch < numsch; ++sch) {
         int sfirst = mesh->schsfirst[sch];
         int slast = mesh->schslast[sch];
@@ -286,9 +315,14 @@ void Hydro::doCycle(
         calcWork(sfp, sfq, pu0, pu, pxp, dt, zw, zetot,
                 sfirst, slast);
     }  // for sch
+    CALI_MARK_END("HydroLoop4");
+    }
     mesh->checkBadSides();
 
-    #pragma omp parallel for schedule(static)
+    #pragma omp parallel
+    {
+    CALI_MARK_BEGIN("HydroLoop5");
+    #pragma omp for schedule(static)
     for (int zch = 0; zch < mesh->numzch; ++zch) {
         int zfirst = mesh->zchzfirst[zch];
         int zlast = mesh->zchzlast[zch];
@@ -303,6 +337,8 @@ void Hydro::doCycle(
         // 9.  compute timestep for next cycle
         calcDtHydro(zdl, zvol, zvol0, dt, zfirst, zlast);
     }  // for zch
+    CALI_MARK_END("HydroLoop5");
+    }
 
 }
 

@@ -13,10 +13,15 @@
 #include <cstdlib>
 #include <string>
 #include <iostream>
+#include <omp.h>
 
 #include "Parallel.hh"
 #include "InputFile.hh"
 #include "Driver.hh"
+
+#ifdef USE_CALI
+#include <caliper/cali.h>
+#endif
 
 using namespace std;
 
@@ -30,6 +35,14 @@ int main(const int argc, const char** argv)
             cerr << "Usage: pennant <filename>" << endl;
         exit(1);
     }
+
+#ifdef USE_CALI
+cali_id_t thread_attr = cali_create_attribute("thread_id", CALI_TYPE_INT, CALI_ATTR_ASVALUE | CALI_ATTR_SKIP_EVENTS);
+#pragma omp parallel
+{
+cali_set_int(thread_attr, omp_get_thread_num());
+}
+#endif
 
     const char* filename = argv[1];
     InputFile inp(filename);

@@ -10,10 +10,9 @@ DEPS := $(SRCS:$(SRCDIR)/%.cc=$(BUILDDIR)/%.d)
 
 BINARY := $(BUILDDIR)/$(PRODUCT)
 
-#USE_GCC := 1
+USE_GCC := 1
 USE_ICC := 1
-#USE_MPI := 1
-USE_CALI := 1
+USE_MPI := 1
 
 # begin compiler-dependent flags
 #
@@ -50,16 +49,6 @@ ifdef USE_MPI
 CXX := mpicxx
 CXXFLAGS += -DUSE_MPI
 endif
-
-ifdef USE_CALI
-CXXINCLUDES += -I${CALI_DIR}/include
-CXXINCLUDES += -DUSE_CALI
-CXXFLAGS    += -L${CALI_DIR}/lib64
-CXXFLAGS    += -lcaliper
-LDFLAGS     += -L${CALI_DIR}/lib64
-LDFLAGS     += -lcaliper
-endif
-
 
 # add openmp flags (comment out for serial build)
 CXXFLAGS += $(CXXFLAGS_OPENMP)

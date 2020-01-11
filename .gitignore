@@ -1,0 +1,8 @@
+
+*.json
+cali_*
+*.o
+build/pennant
+
+
+
